@@ -19,7 +19,7 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $validated = $request->validate();
+        $validated = $request->validated();
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -27,7 +27,7 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
-        return $this->apiSucces([
+        return $this->apiSuccess([
             'token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
@@ -51,6 +51,19 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
             'user' => $user
         ]);
+    }
+
+    public function logout()
+    {
+        try {
+            auth()->user()->tokens()->delete();
+            return $this->apiSuccess('Tokens revoked');
+        }catch(\Throwable $e){
+            throw new HttpResponseException($this->apiError(
+                null,
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+            ));
+        }
     }
 
 }
